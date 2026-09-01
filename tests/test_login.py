@@ -1,9 +1,7 @@
+from pages.login_page import LoginPage
 
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-def test_login_page_load():
-    driver = webdriver.Chrome()
-    driver.get("http://www.saucedemo.com")
-    login_button = driver.find_element(By.ID, "login-button")
-    assert login_button.is_displayed()
-    driver.quit()
+def test_login_page_load(driver):
+    login_page = LoginPage(driver)
+    login_page.open()
+
+    assert login_page.login_button().is_displayed()
