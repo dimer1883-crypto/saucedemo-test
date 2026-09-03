@@ -14,3 +14,11 @@ def test_successful_login(driver):
 
     inventory_page = InventoryPage(driver)
     assert inventory_page.title() == "Products"
+
+def test_failed_login(driver):
+    login_page = LoginPage(driver)
+    login_page.open()
+    login_page.login("standard_user", "wrong_password")
+
+    error_text = login_page.error_message()
+    assert "Username and password do not match" in error_text
