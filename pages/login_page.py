@@ -18,4 +18,4 @@ class LoginPage:
         return self.driver.find_element(By.ID, "login-button")
 
     def error_message(self):
-        return self.driver.find_element(By.CSS_SELECTOR, "[data-test='error']").text
+        return self.driver.find_element(By.CSS_SELECTOR, "[data-test='error']").text 
