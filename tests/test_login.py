@@ -9,8 +9,8 @@ def test_login_page_load(driver):
     assert login_page.login_button().is_displayed()
 
 @pytest.mark.parametrize(
-        "username",
-        ["standard_user", "visual_user", "problem_user"],
+    "username",
+    ["standard_user", "visual_user", "problem_user"],
 )
 def test_successful_login(driver, username):
     login_page = LoginPage(driver)
@@ -20,10 +20,17 @@ def test_successful_login(driver, username):
     inventory_page = InventoryPage(driver)
     assert inventory_page.title() == "Products"
 
-def test_failed_login(driver):
+@pytest.mark.parametrize(
+    "username, password, expected_error",
+    [
+        ("standard_user", "wrong_password", "Username and password do not match"),
+        ("locked_out_user", "secret_sauce", "Sorry, this user has been locked out"),
+    ],
+)
+def test_failed_login(driver, username, password, expected_error):
     login_page = LoginPage(driver)
     login_page.open()
-    login_page.login("standard_user", "wrong_password")
+    login_page.login(username, password)
 
     error_text = login_page.error_message()
-    assert "Username and password do not match" in error_text
+    assert expected_error in error_text
