@@ -10,7 +10,7 @@ def test_login_page_load(driver):
 
 @pytest.mark.parametrize(
     "username",
-    ["standard_user", "visual_user", "problem_user"],
+    ["standard_user", "visual_user", "problem_user", "performance_glitch_user"],
 )
 def test_successful_login(driver, username):
     login_page = LoginPage(driver)
