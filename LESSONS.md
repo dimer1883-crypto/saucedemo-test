@@ -51,7 +51,7 @@ pytest
 - [x] Урок 3 — сценарий входа (позитивный) + InventoryPage
 - [x] Урок 4 — негативный тест (неверный пароль)
 - [x] Урок 5 — параметризация (@pytest.mark.parametrize)
-- [ ] Урок 6 — locked_out_user (негативный)
+- [x] Урок 6 — locked_out_user (негативный)
 - [ ] Урок 7 — явные ожидания (WebDriverWait)
 - [ ] Урок 8 — корзина и выход из аккаунта
 - [ ] Урок 9 — Allure-отчёты
@@ -216,6 +216,34 @@ def test_successful_login(driver, username):
 
 После запуска каждый набор данных — отдельный кейс в отчёте:
 `test_successful_login[standard_user]`, `test_successful_login[visual_user]` и т.д.
+
+---
+
+## Урок 6. Заблокированный пользователь + параметризация с несколькими параметрами
+
+Что изучили: `locked_out_user` — тестовый аккаунт заблокированного юзера (ошибка
+«Sorry, this user has been locked out»), и параметризация негативных тестов сразу
+с несколькими параметрами — логин, пароль, ожидаемое сообщение об ошибке.
+
+```python
+@pytest.mark.parametrize(
+    "username, password, expected_error",
+    [
+        ("standard_user", "wrong_password", "Username and password do not match"),
+        ("locked_out_user", "secret_sauce", "Sorry, this user has been locked out"),
+    ],
+)
+def test_failed_login(driver, username, password, expected_error):
+    login_page = LoginPage(driver)
+    login_page.open()
+    login_page.login(username, password)
+
+    error_text = login_page.error_message()
+    assert expected_error in error_text
+```
+
+Смысл: проверяем конкретное сообщение об ошибке, а не просто её наличие — иначе
+не заметим баг, когда сайт вместо «заблокирован» вдруг станет писать «неверный пароль».
 
 ---
 
