@@ -52,7 +52,7 @@ pytest
 - [x] Урок 4 — негативный тест (неверный пароль)
 - [x] Урок 5 — параметризация (@pytest.mark.parametrize)
 - [x] Урок 6 — locked_out_user (негативный)
-- [ ] Урок 7 — явные ожидания (WebDriverWait)
+- [x] Урок 7 — явные ожидания (WebDriverWait)
 - [ ] Урок 8 — корзина и выход из аккаунта
 - [ ] Урок 9 — Allure-отчёты
 - [ ] Урок 10 — CI (GitHub Actions) + pytest.ini
@@ -247,6 +247,50 @@ def test_failed_login(driver, username, password, expected_error):
 
 ---
 
+## Урок 7. Явные ожидания (WebDriverWait)
+
+Что изучили: `WebDriverWait` + `expected_conditions` — ждём появления элемента, который
+подгружается через JS без перезагрузки страницы. Пример: бейдж корзины у медленного
+`performance_glitch_user`.
+
+Ключевой вывод: Selenium сам дожидается завершения навигации (page load), поэтому
+ожидание заголовка после логина не нужно — WebDriverWait нужен именно для асинхронных
+элементов, которые появляются после загрузки страницы.
+
+```python
+# pages/inventory_page.py — новые методы
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
+def add_first_item_to_cart(self):
+    self.driver.find_element(By.CSS_SELECTOR, ".inventory_item button").click()
+
+def cart_badge_count(self):
+    badge = WebDriverWait(self.driver, 10).until(
+        EC.visibility_of_element_located((By.CSS_SELECTOR, ".shopping_cart_badge"))
+    )
+    return badge.text
+```
+
+```python
+# tests/test_cart.py
+from pages.login_page import LoginPage
+from pages.inventory_page import InventoryPage
+
+
+def test_add_to_cart(driver):
+    login_page = LoginPage(driver)
+    login_page.open()
+    login_page.login("performance_glitch_user", "secret_sauce")
+
+    inventory_page = InventoryPage(driver)
+    inventory_page.add_first_item_to_cart()
+
+    assert inventory_page.cart_badge_count() == "1"
+```
+
+---
+
 ## Итоговая структура проекта
 
 ```
@@ -255,9 +299,10 @@ saucedemo-test/
 ├── pages/
 │   ├── __init__.py
 │   ├── login_page.py     # LoginPage (open, login, login_button, error_message)
-│   └── inventory_page.py # InventoryPage (title)
+│   └── inventory_page.py # InventoryPage (title, add_first_item_to_cart, cart_badge_count)
 ├── tests/
-│   └── test_login.py
+│   ├── test_login.py
+│   └── test_cart.py
 ├── requirements.txt
 ├── README.md
 ├── LESSONS.md            # этот файл
