@@ -53,7 +53,7 @@ pytest
 - [x] Урок 5 — параметризация (@pytest.mark.parametrize)
 - [x] Урок 6 — locked_out_user (негативный)
 - [x] Урок 7 — явные ожидания (WebDriverWait)
-- [ ] Урок 8 — корзина и выход из аккаунта
+- [x] Урок 8 — корзина и выход из аккаунта
 - [ ] Урок 9 — Allure-отчёты
 - [ ] Урок 10 — CI (GitHub Actions) + pytest.ini
 
@@ -291,6 +291,56 @@ def test_add_to_cart(driver):
 
 ---
 
+## Урок 8. Корзина и выход из аккаунта
+
+Что изучили: новый page object `CartPage`, метод `find_elements` (возвращает список
+элементов), переход в корзину и выход из аккаунта через боковое меню.
+
+Ключевой вывод о навигации: логин — это отправка HTML-формы (полная перезагрузка,
+URL меняется на /inventory.html, Selenium сам её ждёт). А выход — ссылка с href="#"
+и клиентская JS-навигация (React Router): страница логина отрисовывается без перезагрузки,
+поэтому после выхода нужно явное ожидание (wait_until_loaded).
+
+```python
+# pages/cart_page.py
+from selenium.webdriver.common.by import By
+
+
+class CartPage:
+    URL = "https://www.saucedemo.com/cart.html"
+
+    def __init__(self, driver):
+        self.driver = driver
+
+    def item_names(self):
+        elements = self.driver.find_elements(By.CSS_SELECTOR, ".inventory_item_name")
+        return [el.text for el in elements]
+```
+
+```python
+# pages/login_page.py — добавлен метод ожидания страницы
+def wait_until_loaded(self):
+    WebDriverWait(self.driver, 10).until(
+        EC.visibility_of_element_located((By.ID, "login-button"))
+    )
+```
+
+```python
+# tests/test_login.py — выход с ожиданием
+def test_logout(driver):
+    login_page = LoginPage(driver)
+    login_page.open()
+    login_page.login("standard_user", "secret_sauce")
+
+    inventory_page = InventoryPage(driver)
+    inventory_page.logout()
+
+    login_page.wait_until_loaded()
+    assert login_page.login_button().is_displayed()
+```
+
+---
+
 ## Итоговая структура проекта
 
 ```
@@ -298,8 +348,9 @@ saucedemo-test/
 ├── conftest.py           # фикстура driver
 ├── pages/
 │   ├── __init__.py
-│   ├── login_page.py     # LoginPage (open, login, login_button, error_message)
-│   └── inventory_page.py # InventoryPage (title, add_first_item_to_cart, cart_badge_count)
+│   ├── login_page.py     # LoginPage (open, login, login_button, error_message, wait_until_loaded)
+│   ├── inventory_page.py # InventoryPage (title, add_first_item_to_cart, cart_badge_count, open_cart, logout)
+│   └── cart_page.py      # CartPage (item_names)
 ├── tests/
 │   ├── test_login.py
 │   └── test_cart.py
