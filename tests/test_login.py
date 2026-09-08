@@ -34,3 +34,14 @@ def test_failed_login(driver, username, password, expected_error):
 
     error_text = login_page.error_message()
     assert expected_error in error_text
+
+def test_logout(driver):
+    login_page = LoginPage(driver)
+    login_page.open()
+    login_page.login("standard_user", "secret_sauce")
+
+    inventory_page = InventoryPage(driver)
+    inventory_page.logout()
+
+    login_page.wait_until_loaded()
+    assert login_page.login_button().is_displayed()

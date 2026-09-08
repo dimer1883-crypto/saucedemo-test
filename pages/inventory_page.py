@@ -18,5 +18,14 @@ class InventoryPage:
         badge = WebDriverWait(self.driver, 10).until(
             EC.visibility_of_element_located((By.CSS_SELECTOR, ".shopping_cart_badge"))
         )
-        
         return badge.text
+    
+    def open_cart(self):
+        self.driver.find_element(By.CSS_SELECTOR, ".shopping_cart_link").click()
+
+    def logout(self):
+        self.driver.find_element(By.ID, "react-burger-menu-btn").click()
+        logout_link = WebDriverWait(self.driver, 10).until(
+            EC.element_to_be_clickable((By.ID, "logout_sidebar_link"))
+        )
+        logout_link.click()
