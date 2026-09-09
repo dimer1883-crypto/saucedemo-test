@@ -28,4 +28,4 @@ class InventoryPage:
         logout_link = WebDriverWait(self.driver, 10).until(
             EC.element_to_be_clickable((By.ID, "logout_sidebar_link"))
         )
-        logout_link.click()
+        self.driver.execute_script("arguments[0].click()", logout_link)

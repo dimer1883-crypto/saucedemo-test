@@ -216,3 +216,7 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# чтобы не коммитить сгенерированные отчёты Allure
+allure-results/
+allure-report/
