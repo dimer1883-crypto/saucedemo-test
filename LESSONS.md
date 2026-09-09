@@ -54,7 +54,7 @@ pytest
 - [x] Урок 6 — locked_out_user (негативный)
 - [x] Урок 7 — явные ожидания (WebDriverWait)
 - [x] Урок 8 — корзина и выход из аккаунта
-- [ ] Урок 9 — Allure-отчёты
+- [x] Урок 9 — Allure-отчёты
 - [ ] Урок 10 — CI (GitHub Actions) + pytest.ini
 
 ---
@@ -337,6 +337,50 @@ def test_logout(driver):
 
     login_page.wait_until_loaded()
     assert login_page.login_button().is_displayed()
+```
+
+---
+
+## Урок 9. Allure-отчёты
+
+Что изучили: Allure превращает результаты прогона в наглядный HTML-отчёт. Плагин
+`allure-pytest` собирает результаты, `allure serve` открывает отчёт. Декораторы
+`@allure.feature` / `@allure.title` / `@allure.severity` добавляют структуру, а хук
+в conftest.py прикрепляет скриншот к упавшему тесту.
+
+Также побороли флаки: клик по анимированной ссылке Logout делаем через JS, чтобы
+клик не промахивался по «уезжающему» элементу меню.
+
+```python
+# запуск со сбором результатов и просмотр отчёта
+pytest --alluredir=./allure-results
+allure serve ./allure-results
+```
+
+```python
+# conftest.py — скриншот упавшего теста
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    outcome = yield
+    report = outcome.get_result()
+    if report.when == "call" and report.failed:
+        driver = item.funcargs.get("driver")
+        if driver:
+            allure.attach(
+                driver.get_screenshot_as_png(),
+                name="screenshot",
+                attachment_type=allure.attachment_type.PNG,
+            )
+```
+
+```python
+# pages/inventory_page.py — надёжный клик по Logout
+def logout(self):
+    self.driver.find_element(By.ID, "react-burger-menu-btn").click()
+    logout_link = WebDriverWait(self.driver, 10).until(
+        EC.element_to_be_clickable((By.ID, "logout_sidebar_link"))
+    )
+    self.driver.execute_script("arguments[0].click()", logout_link)
 ```
 
 ---
