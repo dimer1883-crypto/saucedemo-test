@@ -33,7 +33,7 @@ pip install -r requirements.txt
 ```
 pytest
 ```
-Должно быть `5 passed`.
+Должно быть `10 passed`.
 
 ## Очистка / пересоздание окружения
 
@@ -55,7 +55,7 @@ pytest
 - [x] Урок 7 — явные ожидания (WebDriverWait)
 - [x] Урок 8 — корзина и выход из аккаунта
 - [x] Урок 9 — Allure-отчёты
-- [ ] Урок 10 — CI (GitHub Actions) + pytest.ini
+- [x] Урок 10 — CI (GitHub Actions) + pytest.ini
 
 ---
 
@@ -385,11 +385,67 @@ def logout(self):
 
 ---
 
+## Урок 10. CI (GitHub Actions) + pytest.ini
+
+Что изучили: pytest.ini (настройки запуска: testpaths, addopts), GitHub Actions —
+автозапуск тестов при каждом пуше, headless-режим браузера для CI (на сервере нет
+монитора), кодировку файлов (UTF-8 против UTF-16).
+
+```yaml
+# .github/workflows/tests.yml
+name: Run tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install -r requirements.txt
+      - run: pytest --alluredir=./allure-results
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: allure-results
+          path: allure-results/
+```
+
+```ini
+# pytest.ini
+[pytest]
+testpaths = tests
+addopts = -v --tb=short
+```
+
+```python
+# conftest.py — headless только на CI (переменная CI есть только на GitHub Actions)
+import os
+from selenium.webdriver.chrome.options import Options
+
+@pytest.fixture
+def driver():
+    options = Options()
+    if os.environ.get("CI"):
+        options.add_argument("--headless=new")
+    browser = webdriver.Chrome(options=options)
+    yield browser
+    browser.quit()
+```
+
+---
+
 ## Итоговая структура проекта
 
 ```
 saucedemo-test/
-├── conftest.py           # фикстура driver
+├── conftest.py           # фикстура driver + скриншот упавшего теста + headless на CI
+├── pytest.ini            # testpaths, addopts
 ├── pages/
 │   ├── __init__.py
 │   ├── login_page.py     # LoginPage (open, login, login_button, error_message, wait_until_loaded)
@@ -398,6 +454,8 @@ saucedemo-test/
 ├── tests/
 │   ├── test_login.py
 │   └── test_cart.py
+├── .github/workflows/
+│   └── tests.yml         # CI: автозапуск тестов на GitHub
 ├── requirements.txt
 ├── README.md
 ├── LESSONS.md            # этот файл
