@@ -1,10 +1,17 @@
+import os
+
 import allure
 import pytest
 from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 
 @pytest.fixture
 def driver():
-    browser = webdriver.Chrome()
+    options = Options()
+    if os.environ.get("CI"):
+        options.add_argument("--headless=new")
+
+    browser = webdriver.Chrome(options=options)
     yield browser
     browser.quit()
 
