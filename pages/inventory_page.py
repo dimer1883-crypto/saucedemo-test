@@ -24,7 +24,10 @@ class InventoryPage:
         self.driver.find_element(By.CSS_SELECTOR, ".shopping_cart_link").click()
 
     def logout(self):
-        self.driver.find_element(By.ID, "react-burger-menu-btn").click()
+        burger = WebDriverWait(self.driver, 10).until(
+            EC.element_to_be_clickable((By.ID, "react-burger-menu-btn"))
+        )
+        burger.click()
         logout_link = WebDriverWait(self.driver, 10).until(
             EC.element_to_be_clickable((By.ID, "logout_sidebar_link"))
         )
