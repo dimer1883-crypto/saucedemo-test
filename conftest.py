@@ -1,5 +1,4 @@
 import os
-
 import allure
 import pytest
 from selenium import webdriver
@@ -10,7 +9,8 @@ def driver():
     options = Options()
     if os.environ.get("CI"):
         options.add_argument("--headless=new")
-
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shm-usage")
     browser = webdriver.Chrome(options=options)
     yield browser
     browser.quit()
